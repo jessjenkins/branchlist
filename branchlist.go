@@ -26,5 +26,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%s", json)
+	fmt.Printf("%s\n", json)
 }
