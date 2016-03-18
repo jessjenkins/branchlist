@@ -7,13 +7,11 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-	"strings"
 )
 
 type OrgRepos struct {
 	Repos []OrgRepo
 	Next  string
-	Last  string
 }
 
 type OrgRepo struct {
@@ -39,19 +37,10 @@ func GetOrgRepos(url string) OrgRepos {
 	}
 
 	link := res.Header.Get("Link")
-
-	for _, v := range strings.Split(link, ",") {
-		re := regexp.MustCompile("<(.*)>; rel=\"(.*)\"")
-		parts := re.FindStringSubmatch(v)
-		linkurl := parts[1]
-		linktype := parts[2]
-
-		switch linktype {
-		case "last":
-			orgRepos.Last = linkurl
-		case "next":
-			orgRepos.Next = linkurl
-		}
+	re := regexp.MustCompile("<([^>]*)>; rel=\"next\"")
+	parts := re.FindStringSubmatch(link)
+	if len(parts) > 1 {
+		orgRepos.Next = parts[1]
 	}
 
 	return orgRepos
