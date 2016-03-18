@@ -3,9 +3,7 @@ package main
 import "fmt"
 import "os"
 
-import "net/http"
-import "io/ioutil"
-import "log"
+import "github.com/missjessjenkins/branchlist/repos"
 
 func main() {
 	apikey := os.Getenv("GITHUB_APIKEY")
@@ -17,14 +15,6 @@ func main() {
 	url := fmt.Sprintf(reposurl, org, apikey)
 	fmt.Printf("Url=%s\n", url)
 
-	res, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	json, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%s\n", json)
+	orgRepos := repos.GetOrgRepos(url)
+	fmt.Printf("orgRepos=%s\n", orgRepos)
 }
