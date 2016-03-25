@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+
+	"github.com/missjessjenkins/branchlist/config"
 )
 
 type OrgRepos struct {
@@ -15,7 +17,8 @@ type OrgRepos struct {
 }
 
 type OrgRepo struct {
-	Name string
+	Name     string
+	FullName string `json:"full_name"`
 }
 
 func GetOrgReposFromURL(url string) OrgRepos {
@@ -44,4 +47,19 @@ func GetOrgReposFromURL(url string) OrgRepos {
 	}
 
 	return orgRepos
+}
+
+func GetOrgRepos(org string, c chan OrgRepo) {
+	reposurl := "https://api.github.com/orgs/%s/repos?type=all&per_page=50&access_token=%s"
+	url := fmt.Sprintf(reposurl, org, config.ApiKey)
+
+	for url != "" {
+		orgRepos := GetOrgReposFromURL(url)
+		for _, repo := range orgRepos.Repos {
+			c <- repo
+		}
+		url = orgRepos.Next
+	}
+	close(c)
+
 }

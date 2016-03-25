@@ -1,34 +1,56 @@
 package main
 
-import "fmt"
-import "os"
+import (
+	"fmt"
 
-import "github.com/missjessjenkins/branchlist/repos"
+	"github.com/missjessjenkins/branchlist/config"
+	"github.com/missjessjenkins/branchlist/repos"
+)
+
+var apikey string
 
 func main() {
-	apikey := os.Getenv("GITHUB_APIKEY")
-	org := os.Getenv("GITHUB_ORG")
-	fmt.Printf("Org is %s\n", org)
-	fmt.Printf("Key is %s\n\n", apikey)
 
-	reposurl := "https://api.github.com/orgs/%s/repos?type=all&per_page=50&access_token=%s"
-	url := fmt.Sprintf(reposurl, org, apikey)
+	config.Setup()
 
-	getAllRepos(url, 0)
+	cr := make(chan repoBranchList)
+
+	// For each repo on github, fire off a routine to collect
+	// all the branches for that repo
+	c := make(chan repos.OrgRepo)
+	go repos.GetOrgRepos(config.Org, c)
+	numrepos := 0
+	for repo := range c {
+		go collectBranchesForRepo(repo, cr)
+		numrepos++
+	}
+
+	// When each fired off routine above finishes, collect up
+	// the results and print them out
+	for i := 0; i < numrepos; i++ {
+		rbl := <-cr
+		fmt.Printf("%d - %s\n", i, rbl.Repo)
+		for x, br := range rbl.Branches {
+			fmt.Printf("  %d - %s\n", x, br)
+		}
+	}
 
 }
 
-func getAllRepos(url string, z int) {
-	orgRepos := repos.GetOrgReposFromURL(url)
-	//fmt.Printf("orgRepos=%s\n", orgRepos)
+type repoBranchList struct {
+	Repo     string
+	Branches []string
+}
 
-	newz := z
-	for i, repo := range orgRepos.Repos {
-		fmt.Printf("%d - %s\n", z+i, repo.Name)
-		newz++
+func collectBranchesForRepo(repo repos.OrgRepo, repoChan chan repoBranchList) {
+	rbl := repoBranchList{repo.Name, nil}
+
+	c := make(chan string)
+	go repos.GetRepoBranches(repo.FullName, c)
+
+	for branch := range c {
+		rbl.Branches = append(rbl.Branches, branch)
 	}
-	fmt.Println("----")
-	if orgRepos.Next != "" {
-		getAllRepos(orgRepos.Next, newz)
-	}
+
+	repoChan <- rbl
 }
