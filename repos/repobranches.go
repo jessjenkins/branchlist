@@ -9,18 +9,17 @@ import (
 	"regexp"
 )
 
-type OrgRepos struct {
-	Repos []OrgRepo
-	Next  string
+type RepoBranches struct {
+	Branches []RepoBranch
+	Next     string
 }
 
-type OrgRepo struct {
-	Name     string
-	FullName string `json:"full_name"`
+type RepoBranch struct {
+	Name string
 }
 
-func GetOrgReposFromURL(url string) OrgRepos {
-	orgRepos := OrgRepos{}
+func GetRepoBranchesFromURL(url string) RepoBranches {
+	repoBranches := RepoBranches{}
 
 	res, err := http.Get(url)
 	if err != nil {
@@ -32,7 +31,7 @@ func GetOrgReposFromURL(url string) OrgRepos {
 		log.Fatal(err)
 	}
 
-	err = json.Unmarshal(jsonblob, &orgRepos.Repos)
+	err = json.Unmarshal(jsonblob, &repoBranches.Branches)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
@@ -41,8 +40,8 @@ func GetOrgReposFromURL(url string) OrgRepos {
 	re := regexp.MustCompile("<([^>]*)>; rel=\"next\"")
 	parts := re.FindStringSubmatch(link)
 	if len(parts) > 1 {
-		orgRepos.Next = parts[1]
+		repoBranches.Next = parts[1]
 	}
 
-	return orgRepos
+	return repoBranches
 }

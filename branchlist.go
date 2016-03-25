@@ -1,12 +1,16 @@
 package main
 
-import "fmt"
-import "os"
+import (
+	"fmt"
+	"os"
 
-import "github.com/missjessjenkins/branchlist/repos"
+	"github.com/missjessjenkins/branchlist/repos"
+)
+
+var apikey string
 
 func main() {
-	apikey := os.Getenv("GITHUB_APIKEY")
+	apikey = os.Getenv("GITHUB_APIKEY")
 	org := os.Getenv("GITHUB_ORG")
 	fmt.Printf("Org is %s\n", org)
 	fmt.Printf("Key is %s\n\n", apikey)
@@ -24,11 +28,30 @@ func getAllRepos(url string, z int) {
 
 	newz := z
 	for i, repo := range orgRepos.Repos {
-		fmt.Printf("%d - %s\n", z+i, repo.Name)
+		fmt.Printf("%d - %s [%s]\n", z+i, repo.Name, repo.FullName)
+		branchesurl := "https://api.github.com/repos/%s/branches?per_page=50&access_token=%s"
+		url := fmt.Sprintf(branchesurl, repo.FullName, apikey)
+
+		getAllBranches(url, 0)
+
 		newz++
 	}
 	fmt.Println("----")
 	if orgRepos.Next != "" {
 		getAllRepos(orgRepos.Next, newz)
+	}
+}
+
+func getAllBranches(url string, z int) {
+	branches := repos.GetRepoBranchesFromURL(url)
+
+	newz := z
+	for i, repo := range branches.Branches {
+		fmt.Printf("  %d - %s\n", z+i, repo.Name)
+		newz++
+	}
+	fmt.Println("  ----")
+	if branches.Next != "" {
+		getAllBranches(branches.Next, newz)
 	}
 }
