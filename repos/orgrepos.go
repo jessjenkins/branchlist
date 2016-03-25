@@ -50,7 +50,7 @@ func GetOrgReposFromURL(url string) OrgRepos {
 }
 
 func GetOrgRepos(org string, c chan OrgRepo) {
-	reposurl := "https://api.github.com/orgs/%s/repos?type=all&per_page=50&access_token=%s"
+	reposurl := "https://api.github.com/orgs/%s/repos?type=all&per_page=100&access_token=%s"
 	url := fmt.Sprintf(reposurl, org, config.ApiKey)
 
 	for url != "" {
