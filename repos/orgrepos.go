@@ -18,7 +18,7 @@ type OrgRepo struct {
 	Name string
 }
 
-func GetOrgRepos(url string) OrgRepos {
+func GetOrgReposFromURL(url string) OrgRepos {
 	orgRepos := OrgRepos{}
 
 	res, err := http.Get(url)

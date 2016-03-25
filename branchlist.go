@@ -19,7 +19,7 @@ func main() {
 }
 
 func getAllRepos(url string, z int) {
-	orgRepos := repos.GetOrgRepos(url)
+	orgRepos := repos.GetOrgReposFromURL(url)
 	//fmt.Printf("orgRepos=%s\n", orgRepos)
 
 	newz := z
