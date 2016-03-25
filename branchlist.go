@@ -2,21 +2,19 @@ package main
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/missjessjenkins/branchlist/config"
 	"github.com/missjessjenkins/branchlist/repos"
 )
 
 var apikey string
 
 func main() {
-	apikey = os.Getenv("GITHUB_APIKEY")
-	org := os.Getenv("GITHUB_ORG")
-	fmt.Printf("Org is %s\n", org)
-	fmt.Printf("Key is %s\n\n", apikey)
+
+	config.Setup()
 
 	reposurl := "https://api.github.com/orgs/%s/repos?type=all&per_page=50&access_token=%s"
-	url := fmt.Sprintf(reposurl, org, apikey)
+	url := fmt.Sprintf(reposurl, config.Org, config.ApiKey)
 
 	getAllRepos(url, 0)
 
@@ -30,7 +28,7 @@ func getAllRepos(url string, z int) {
 	for i, repo := range orgRepos.Repos {
 		fmt.Printf("%d - %s [%s]\n", z+i, repo.Name, repo.FullName)
 		branchesurl := "https://api.github.com/repos/%s/branches?per_page=50&access_token=%s"
-		url := fmt.Sprintf(branchesurl, repo.FullName, apikey)
+		url := fmt.Sprintf(branchesurl, repo.FullName, config.ApiKey)
 
 		getAllBranches(url, 0)
 
