@@ -53,6 +53,7 @@ func GetRepoBranches(repo string, c chan string) {
 	url := fmt.Sprintf(branchesurl, repo, config.ApiKey)
 
 	for url != "" {
+		repoBranches := GetRepoBranchesFromURL(url)
 		for _, branch := range repoBranches.Branches {
 			c <- branch.Name
 		}
