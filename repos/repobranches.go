@@ -49,7 +49,7 @@ func GetRepoBranchesFromURL(url string) RepoBranches {
 }
 
 func GetRepoBranches(repo string, c chan string) {
-	branchesurl := "https://api.github.com/repos/%s/branches?per_page=50&access_token=%s"
+	branchesurl := "https://api.github.com/repos/%s/branches?per_page=100&access_token=%s"
 	url := fmt.Sprintf(branchesurl, repo, config.ApiKey)
 
 	for url != "" {
