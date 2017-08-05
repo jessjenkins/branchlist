@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/missjessjenkins/branchlist/config"
-	"github.com/missjessjenkins/branchlist/repos"
+	"github.com/jessjenkins/branchlist/config"
+	"github.com/jessjenkins/branchlist/repos"
 )
 
 var apikey string

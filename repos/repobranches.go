@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/missjessjenkins/branchlist/config"
+	"github.com/jessjenkins/branchlist/config"
 )
 
 type RepoBranches struct {
