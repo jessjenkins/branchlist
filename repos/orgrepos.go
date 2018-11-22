@@ -19,6 +19,7 @@ type OrgRepos struct {
 type OrgRepo struct {
 	Name     string
 	FullName string `json:"full_name"`
+	GitURL   string `json:"ssh_url"`
 }
 
 func GetOrgReposFromURL(url string) OrgRepos {

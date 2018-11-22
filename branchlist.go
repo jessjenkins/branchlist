@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"sort"
+	"log"
+	"os"
+	"os/exec"
 
 	"github.com/jessjenkins/branchlist/config"
 	"github.com/jessjenkins/branchlist/repos"
@@ -14,7 +16,7 @@ func main() {
 
 	config.Setup()
 
-	cr := make(chan repoBranchList)
+	cr := make(chan bool)
 
 	// For each repo on github, fire off a routine to collect
 	// all the branches for that repo
@@ -22,32 +24,17 @@ func main() {
 	go repos.GetOrgRepos(config.Org, c)
 	numrepos := 0
 	for repo := range c {
-		go collectBranchesForRepo(repo, cr)
+		go cloneRepo(repo, cr)
 		numrepos++
 	}
 
 	// When each fired off routine above finishes, collect up
 	// the results and add to a map
-	branchmap := make(map[string][]string)
+
 	for i := 0; i < numrepos; i++ {
-		rbl := <-cr
-		//fmt.Printf("%d - %s\n", i, rbl.Repo)
-		for _, br := range rbl.Branches {
-			//fmt.Printf("  %d - %s\n", x, br)
-			branchmap[br] = append(branchmap[br], rbl.Repo)
-		}
+		<-cr
 	}
 
-	// Sort and print out list of repos per branchname
-	branches := make([]string, 0, len(branchmap))
-	for branch := range branchmap {
-		branches = append(branches, branch)
-	}
-	sort.Strings(branches)
-
-	for _, branch := range branches {
-		fmt.Printf("%s: %v\n", branch, branchmap[branch])
-	}
 }
 
 // =============================================================
@@ -56,15 +43,24 @@ type repoBranchList struct {
 	Branches []string
 }
 
-func collectBranchesForRepo(repo repos.OrgRepo, repoChan chan repoBranchList) {
-	rbl := repoBranchList{repo.Name, nil}
+func cloneRepo(repo repos.OrgRepo, repoChan chan bool) {
 
-	c := make(chan string)
-	go repos.GetRepoBranches(repo.FullName, c)
-
-	for branch := range c {
-		rbl.Branches = append(rbl.Branches, branch)
+	repolocation := "/home/jess/dev/" + repo.FullName
+	//fmt.Println(repo.FullName)
+	if _, err := os.Stat(repolocation); os.IsNotExist(err) {
+		cmd := exec.Command("git", "clone", repo.GitURL, repolocation)
+		giterr := cmd.Run()
+		if giterr != nil {
+			log.Fatal(giterr)
+		}
+		fmt.Printf("%s cloned\n", repo.FullName)
+	} else {
+		cmd := exec.Command("git", "-C", repolocation, "fetch")
+		giterr := cmd.Run()
+		if giterr != nil {
+			log.Fatal(giterr)
+		}
+		fmt.Printf("%s updated\n", repo.FullName)
 	}
-
-	repoChan <- rbl
+	repoChan <- true
 }
